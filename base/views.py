@@ -3,9 +3,10 @@ from rest_framework.viewsets import ModelViewSet
 from rest_framework.generics import GenericAPIView
 from rest_framework.response import Response
 from .models import Product,ProductType
-from .serializers import ProductSerializer,ProductTypeSerializer
+from .serializers import ProductSerializer,ProductTypeSerializer,UserSerializer
 from rest_framework import status
-
+from rest_framework.decorators import api_view
+from django.contrib.auth.hashers import make_password
 
 # Create your views here.
 
@@ -18,7 +19,7 @@ class ProductApiView(ModelViewSet):
 class ProductTypeApiView(GenericAPIView):
     queryset=ProductType.objects.all()
     serializer_class=ProductTypeSerializer
-    
+
     def get(self,request):
         product_type_objs= self.get_queryset()
         serializer=self.get_serializer(product_type_objs,many=True)
@@ -61,6 +62,15 @@ class ProductTypeDetailApiView(GenericAPIView):
             },
             status=status.HTTP_200_OK)
 
-    
-
-    
+@api_view(['POST'])
+def register(request):
+    password=request.data.get('password')
+    hash_password=make_password(password)
+    data=request.data.copy()
+    data['password']=hash_password
+    serializer=UserSerializer(data=data)
+    if serializer.is_valid():
+        serializer.save()
+        return Response(serializer.data,status=status.HTTP_201_CREATED)
+    else:
+        return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)

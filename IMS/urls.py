@@ -16,12 +16,21 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
-from base.views import ProductApiView,ProductTypeApiView,ProductTypeDetailApiView
+from django.conf import settings
+from django.conf.urls.static import static
+from base.views import ProductApiView,ProductTypeApiView,ProductTypeDetailApiView,register
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('product/',ProductApiView.as_view({'get':'list','post':'create'})),
     path('product/<int:pk>/',ProductApiView.as_view({'get':'retrieve','put':'update','patch':'partial_update','delete':'destroy'})),
     path('product-type/',ProductTypeApiView.as_view()),
-    path('product-type/<int:pk>/',ProductTypeDetailApiView.as_view())
+    path('product-type/<int:pk>/',ProductTypeDetailApiView.as_view()),
+    path('register/',register,name='register')
 ]
+
+
+
+
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

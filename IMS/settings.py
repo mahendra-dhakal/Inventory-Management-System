@@ -38,7 +38,8 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'base'
+    'base',
+    'rest_framework'
 ]
 
 MIDDLEWARE = [
@@ -127,3 +128,19 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
+#for handling media 
+# MEDIA_ROOT → tells Django where on your filesystem to save uploaded files.
+# MEDIA_URL → tells Django how to serve those files via HTTP in development.
+
+MEDIA_ROOT=BASE_DIR/'media'
+MEDIA_URL='/media/'
+
+REST_FRAMEWORK = {
+    'DEFAULT_PARSER_CLASSES': [
+        'rest_framework.parsers.JSONParser',
+        'rest_framework.parsers.FormParser',
+        'rest_framework.parsers.MultiPartParser',  # This is crucial for file uploads
+    ]
+}
