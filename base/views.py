@@ -9,18 +9,20 @@ from rest_framework.decorators import api_view
 from django.contrib.auth.hashers import make_password
 from rest_framework.authtoken.models import Token
 from django.contrib.auth import authenticate
+from rest_framework.permissions import IsAuthenticated
 
 # Create your views here.
 
 class ProductApiView(ModelViewSet):
     queryset=Product.objects.all()
     serializer_class=ProductSerializer
-    
+    permission_classes=[IsAuthenticated]
     
 
 class ProductTypeApiView(GenericAPIView):
     queryset=ProductType.objects.all()
     serializer_class=ProductTypeSerializer
+    permission_class=[IsAuthenticated]
 
     def get(self,request):
         product_type_objs= self.get_queryset()
@@ -40,6 +42,8 @@ class ProductTypeDetailApiView(GenericAPIView):
     
     queryset=ProductType.objects.all()
     serializer_class=ProductTypeSerializer
+    permission_classes=[IsAuthenticated]
+    
     
     def get(self,request,pk):
         product_type_obj=self.get_object()
@@ -84,7 +88,9 @@ def login(request):
     
     user=authenticate(username=username,password=password)
     if user:
-        token,_=Token.objects.get_or_create(user=user)  #here instead of _ we can use any variable ..get_or_create gives tuples with two values (Token,bool)
+        token,_=Token.objects.get_or_create(user=user)  
+        #here instead of _ we can use any variable ..
+        # get_or_create gives tuples with two values (Token,bool)
         return Response(token.key,status=status.HTTP_200_OK)
     else:
         return Response('Invalid username or password!',status=status.HTTP_400_BAD_REQUEST)
