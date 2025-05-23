@@ -5,11 +5,12 @@ from rest_framework.response import Response
 from .models import Product,ProductType
 from .serializers import ProductSerializer,ProductTypeSerializer,UserSerializer
 from rest_framework import status
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view,permission_classes
 from django.contrib.auth.hashers import make_password
 from rest_framework.authtoken.models import Token
 from django.contrib.auth import authenticate
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated,IsAdminUser
+from django.contrib.auth.models import Group
 
 # Create your views here.
 
@@ -22,7 +23,7 @@ class ProductApiView(ModelViewSet):
 class ProductTypeApiView(GenericAPIView):
     queryset=ProductType.objects.all()
     serializer_class=ProductTypeSerializer
-    permission_class=[IsAuthenticated]
+    permission_classes=[IsAuthenticated]
 
     def get(self,request):
         product_type_objs= self.get_queryset()
@@ -81,11 +82,33 @@ def register(request):
     else:
         return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
     
+
+@api_view(['POST'])
+@permission_classes([IsAdminUser])
+def register_management(request):
+    try:
+        management_group=Group.objects.get(name='Management')
+        password=request.data.get('password')
+        hash_password=make_password(password)
+        data=request.data.copy()
+        data['password']=hash_password
+        data['groups']=management_group.id   #here id must be passed on...serializers takes id in relational field if we're creating data from serializers. 
+        serializer=UserSerializer(data=data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data,status=status.HTTP_201_CREATED)
+        else:
+            return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
+    except:
+        return Response('No management groups found !',status=status.HTTP_400_BAD_REQUEST)
+     
+    
+    
 @api_view(['POST'])
 def login(request):
     username=request.data.get('username')
     password=request.data.get('password')
-    
+   
     user=authenticate(username=username,password=password)
     if user:
         token,_=Token.objects.get_or_create(user=user)  

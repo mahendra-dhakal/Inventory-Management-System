@@ -1,5 +1,5 @@
 from django.db import models
-from django.contrib.auth.models import AbstractUser
+from django.contrib.auth.models import AbstractUser,Group
 from django.utils import timezone
 
 # Create your models here.
@@ -7,8 +7,9 @@ from django.utils import timezone
 class User(AbstractUser):
     username=models.CharField(max_length=100, unique=True)
     password=models.CharField(max_length=100,)
+    groups=models.ForeignKey(Group,on_delete=models.SET_NULL,null=True,blank=True)
     email=models.EmailField()
-    image=models.FileField()
+    image=models.FileField(null=True,blank=True)
     address=models.TextField()
     contact_no=models.CharField(max_length=100)
     created_at=models.DateTimeField(auto_now_add=True)
