@@ -9,7 +9,7 @@ from rest_framework.decorators import api_view,permission_classes
 from django.contrib.auth.hashers import make_password
 from rest_framework.authtoken.models import Token
 from django.contrib.auth import authenticate
-from rest_framework.permissions import IsAuthenticated,IsAdminUser
+from rest_framework.permissions import IsAuthenticated,IsAdminUser,DjangoModelPermissions
 from django.contrib.auth.models import Group
 
 # Create your views here.
@@ -17,14 +17,15 @@ from django.contrib.auth.models import Group
 class ProductApiView(ModelViewSet):
     queryset=Product.objects.all()
     serializer_class=ProductSerializer
-    permission_classes=[IsAuthenticated]
+    permission_classes=[IsAuthenticated,DjangoModelPermissions]# DjangoModelPermissions allows only users with the right permissions to access this view.
+    # DjangoModelPermissions checks the user's permissions against the model's permissions.
+
     
 
 class ProductTypeApiView(GenericAPIView):
     queryset=ProductType.objects.all()
     serializer_class=ProductTypeSerializer
-    permission_classes=[IsAuthenticated]
-
+    permission_classes=[IsAuthenticated,DjangoModelPermissions]   
     def get(self,request):
         product_type_objs= self.get_queryset()
         serializer=self.get_serializer(product_type_objs,many=True)
@@ -43,7 +44,7 @@ class ProductTypeDetailApiView(GenericAPIView):
     
     queryset=ProductType.objects.all()
     serializer_class=ProductTypeSerializer
-    permission_classes=[IsAuthenticated]
+    permission_classes=[IsAuthenticated,DjangoModelPermissions]   
     
     
     def get(self,request,pk):
@@ -70,17 +71,31 @@ class ProductTypeDetailApiView(GenericAPIView):
             status=status.HTTP_200_OK)
 
 @api_view(['POST'])
-def register(request):
-    password=request.data.get('password')
-    hash_password=make_password(password)
-    data=request.data.copy()
-    data['password']=hash_password
-    serializer=UserSerializer(data=data)
-    if serializer.is_valid():
-        serializer.save()
-        return Response(serializer.data,status=status.HTTP_201_CREATED)
+def register_employee(request):
+    if request.user.groups.filter(name='Management').exists():
+        # Check if the user is in the Management group
+        try:
+            employee_group=Group.objects.get(name='Employee')
+        except:
+            return Response('No employee group found!',status=status.HTTP_400_BAD_REQUEST)
+        
+        password=request.data.get('password')
+        hash_password=make_password(password)
+        
+        data={}
+        for key,value in request.data.items():
+            data[key]=value
+            
+        data['password']=hash_password
+        data['groups']=[employee_group.id]
+        serializer=UserSerializer(data=data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data,status=status.HTTP_201_CREATED)
+        else:
+            return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
     else:
-        return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
+        return Response('You are not authorized to register an employee!',status=status.HTTP_403_FORBIDDEN)
     
 
 @api_view(['POST'])
@@ -88,19 +103,25 @@ def register(request):
 def register_management(request):
     try:
         management_group=Group.objects.get(name='Management')
-        password=request.data.get('password')
-        hash_password=make_password(password)
-        data=request.data.copy()
-        data['password']=hash_password
-        data['groups']=management_group.id   #here id must be passed on...serializers takes id in relational field if we're creating data from serializers. 
-        serializer=UserSerializer(data=data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data,status=status.HTTP_201_CREATED)
-        else:
-            return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
     except:
         return Response('No management groups found !',status=status.HTTP_400_BAD_REQUEST)
+    
+    password=request.data.get('password')
+    hash_password=make_password(password)
+    
+    data={}
+    for key,value in request.data.items():   # here copying manually instead of copy() because copy() is deep copying the data. and file cannot be copied.
+        data[key]=value
+        
+    data['password']=hash_password
+    data['groups']=[management_group.id ]  #here id must be passed on...serializers takes id in relational field if we're creating data from serializers. 
+    serializer=UserSerializer(data=data)
+    if serializer.is_valid():
+        serializer.save()
+        return Response(serializer.data,status=status.HTTP_201_CREATED)
+    else:
+        return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
+
      
     
     

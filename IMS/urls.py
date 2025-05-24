@@ -18,7 +18,7 @@ from django.contrib import admin
 from django.urls import path
 from django.conf import settings
 from django.conf.urls.static import static
-from base.views import ProductApiView,ProductTypeApiView,ProductTypeDetailApiView,register,login,register_management
+from base.views import ProductApiView,ProductTypeApiView,ProductTypeDetailApiView,register_employee,login,register_management
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -26,7 +26,7 @@ urlpatterns = [
     path('product/<int:pk>/',ProductApiView.as_view({'get':'retrieve','put':'update','patch':'partial_update','delete':'destroy'})),
     path('product-type/',ProductTypeApiView.as_view()),
     path('product-type/<int:pk>/',ProductTypeDetailApiView.as_view()),
-    path('register/',register,name='register'),
+    path('register-employee/',register_employee,name='register-employee'),
     path('register-management/',register_management,name='register-management'),
     path('login/',login,name='login')
 ]

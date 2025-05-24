@@ -7,7 +7,7 @@ from django.utils import timezone
 class User(AbstractUser):
     username=models.CharField(max_length=100, unique=True)
     password=models.CharField(max_length=100,)
-    groups=models.ForeignKey(Group,on_delete=models.SET_NULL,null=True,blank=True)
+    groups=models.ManyToManyField(Group)
     email=models.EmailField()
     image=models.FileField(null=True,blank=True)
     address=models.TextField()
