@@ -17,7 +17,6 @@ class User(AbstractUser):
 
 class ProductType(models.Model):
     name=models.CharField(max_length=200)
-    user=models.ForeignKey(User, on_delete=models.CASCADE,null=True)
     created_at=models.DateTimeField(auto_now_add=True)
     updated_at=models.DateTimeField(auto_now=True)
     
@@ -27,7 +26,6 @@ class ProductType(models.Model):
 class Department(models.Model):
     name=models.CharField(max_length=300)
     floor=models.CharField(max_length=300)
-    user=models.ForeignKey(User, on_delete=models.CASCADE,null=True)
     created_at=models.DateTimeField(auto_now_add=True)
     updated_at=models.DateTimeField(auto_now=True)
     
@@ -41,7 +39,6 @@ class Product(models.Model):
     stock=models.IntegerField()
     type=models.ForeignKey(ProductType,on_delete=models.SET_NULL,null=True)
     department=models.ManyToManyField(Department)
-    user=models.ForeignKey(User, on_delete=models.CASCADE,null=True)
     created_at=models.DateTimeField(auto_now_add=True)
     updated_at=models.DateTimeField(auto_now=True)
     
@@ -54,7 +51,6 @@ class Purchase(models.Model):
     quantity=models.IntegerField()
     price=models.FloatField()
     vendor=models.ForeignKey('Vendor',on_delete=models.SET_NULL,null=True)
-    user=models.ForeignKey(User, on_delete=models.CASCADE,null=True)
     date=models.DateField()
     created_at=models.DateTimeField(auto_now_add=True)
     updated_at=models.DateTimeField(auto_now=True)
@@ -67,7 +63,6 @@ class Sell(models.Model):
     quantity=models.IntegerField()
     price=models.FloatField()
     customer_name=models.CharField(max_length=300)
-    user=models.ForeignKey(User, on_delete=models.CASCADE,null=True)
     date=models.DateField()
     created_at=models.DateTimeField(auto_now_add=True)
     updated_at=models.DateTimeField(auto_now=True)
@@ -80,7 +75,6 @@ class Vendor(models.Model):
     address=models.CharField(max_length=300)
     contact=models.CharField(max_length=300)
     email=models.EmailField(blank=True,null=True)
-    user=models.ForeignKey(User, on_delete=models.CASCADE,null=True)
     created_at=models.DateTimeField(auto_now_add=True)
     updated_at=models.DateTimeField(auto_now=True)
     

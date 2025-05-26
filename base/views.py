@@ -19,7 +19,8 @@ class ProductApiView(ModelViewSet):
     serializer_class=ProductSerializer
     permission_classes=[IsAuthenticated,DjangoModelPermissions]# DjangoModelPermissions allows only users with the right permissions to access this view.
     # DjangoModelPermissions checks the user's permissions against the model's permissions.
-
+    filterset_fields=['type','department']
+    search_fields=['name','description']
     
 
 class ProductTypeApiView(GenericAPIView):
@@ -28,8 +29,16 @@ class ProductTypeApiView(GenericAPIView):
     permission_classes=[IsAuthenticated,DjangoModelPermissions]   
     def get(self,request):
         product_type_objs= self.get_queryset()
-        serializer=self.get_serializer(product_type_objs,many=True)
-        return Response(serializer.data) 
+        
+         # Apply filtering only if there are query parameters
+        if request.query_params:
+            product_type_objs = self.filter_queryset(product_type_objs)
+        
+        #for pagination in custom method
+        paginate_data=self.paginate_queryset(product_type_objs)
+        serializer=self.get_serializer(paginate_data,many=True)
+        response=self.get_paginated_response(serializer.data)
+        return Response(response)
     
     def post(self,request):
         serializer=self.get_serializer(data=request.data)
